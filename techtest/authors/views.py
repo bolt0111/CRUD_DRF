@@ -11,15 +11,7 @@ class AuthorListView(View):
     def get(self, request, *args, **kwargs):
         return json_response(AuthorSchema().dump(Author.objects.all(), many=True))
 
-    def post(self, request, *args, **kwargs):
-        try:
-            author = AuthorSchema.load(json.loads(request.body))
-        except ValidationError as e:
-            return json_response(e.messages, 400)
-        return json_response(AuthorSchema().dump(author), 201)
-
 class AuthorView(View):
-
     def get(self, request, author_id, *args, **kwargs):
         try:
             self.author = Author.objects.get(pk=author_id)
@@ -49,6 +41,10 @@ class AuthorView(View):
             return json_response(e.messages, 400)
         return json_response(AuthorSchema().dump(self.author))
 
-    def delete(self, request, *args, **kwargs):
+    def delete(self, request, author_id, *args, **kwargs):
+        try:
+            self.author = Author.objects.get(pk=author_id)
+        except Author.DoesNotExist:
+            return json_response({"error": "No Author matches the given query"}, 404)
         self.author.delete()
-        return json_response()
+        return json_response({"success": "Delete author successfully"}, 200)

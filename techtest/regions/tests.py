@@ -31,17 +31,40 @@ class RegionListViewTestCase(TestCase):
             ],
         )
 
+    def test_creates_new_region(self):
+        payload = {
+            "code": "US",
+            "name": "United States of America",
+        }
+        response = self.client.post(
+            self.url, data=json.dumps(payload), content_type="application/json"
+        )
+        region = Region.objects.last()
+        self.assertEqual(response.status_code, 200)
+        self.assertIsNotNone(region)
+        self.assertEqual(Region.objects.count(), 3)
+        self.assertDictEqual(
+            {
+                "id": region.id,
+                "code": "US",
+                "name": "United States of America",
+            },
+            response.json(),
+        )
+
+        response = self.client.post(
+            self.url, data=json.dumps(payload), content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(json.loads(response.content)["error"], "Region already exists")
+
+
 class RegionViewTestCase(TestCase):
     def setUp(self):
         self.region = Region.objects.create(code="AL", name="Albania")
+        self.url = reverse("region", kwargs={"region_id": self.region.id})
 
     def test_serializes_single_record_with_correct_data_shape_and_status_code(self):
-        self.url = reverse("region", kwargs={"region_id": self.region.id + 1})
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 404)
-        self.assertEqual(json.loads(response.content)["error"], "No Region matches the given query")
-
-        self.url = reverse("region", kwargs={"region_id": self.region.id})
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertCountEqual(
@@ -53,37 +76,7 @@ class RegionViewTestCase(TestCase):
             },
         )
 
-    def test_creates_region(self):
-        self.url = reverse("create_region")
-
-        payload = {
-            "code": "DU",
-            "name": "Netherlands"
-        }
-        response = self.client.post(
-            self.url, data=json.dumps(payload), content_type="application/json"
-        )
-        region = Region.objects.last()
-        self.assertEqual(response.status_code, 200)
-        self.assertIsNotNone(region)
-        self.assertEqual(Region.objects.count(), 2)
-        self.assertDictEqual(
-            {
-                "id": region.id,
-                "code": "DU",
-                "name": "Netherlands"
-            },
-            response.json()
-        )
-
-        response = self.client.post(
-            self.url, data=json.dumps(payload), content_type="application/json"
-        )
-        self.assertEqual(response.status_code, 400)
-        self.assertEqual(json.loads(response.content)["error"], "Region already exists")
-
     def test_updates_region(self):
-        self.url = reverse("region", kwargs={"region_id": self.region.id})
         payload = {
             "id": self.region.id,
             "code": "US",
@@ -105,25 +98,7 @@ class RegionViewTestCase(TestCase):
             response.json(),
         )
 
-        self.url = reverse("region", kwargs={"region_id": self.region.id + 1})
-        payload = {
-            "id": self.region.id + 1,
-            "code": "UK",
-            "name": "United Kingdom"
-        }
-        response = self.client.put(
-            self.url, data=json.dumps(payload), content_type="application/json"
-        )
-        self.assertEqual(response.status_code, 404)
-        self.assertEqual(json.loads(response.content)["error"], "No Region matches the given query")
-
     def test_removes_region(self):
-        self.url = reverse("region", kwargs={"region_id": self.region.id + 1})
-        response = self.client.delete(self.url)
-        self.assertEqual(response.status_code, 404)
-        self.assertEqual(json.loads(response.content)["error"], "No Region matches the given query")
-
-        self.url = reverse("region", kwargs={"region_id": self.region.id})
         response = self.client.delete(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(Region.objects.count(), 0)

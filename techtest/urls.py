@@ -29,7 +29,6 @@ urlpatterns = [
     path("articles/<int:article_id>/delete_author/", ArticleView.as_view(), name="delete_author_from_article"),
     path("regions/", RegionsListView.as_view(), name="regions-list"),
     path("regions/<int:region_id>/", RegionView.as_view(), name="region"),
-    path("regions/create/", RegionView.as_view(), name="create_region"),
     path("regions/<int:region_id>/delete/", RegionView.as_view(), name="delete_region"),
     path("authors/", AuthorListView.as_view(), name="authors-list"),
     path("authors/<int:author_id>/", AuthorView.as_view(), name="author"),
