@@ -11,20 +11,12 @@ class RegionsListView(View):
     def get(self, request, *args, **kwargs):
         return json_response(RegionSchema().dump(Region.objects.all(), many=True))
 
-    def post(self, request, *args, **kwargs):
-        try:
-            region = RegionSchema().load(json.loads(request.body))
-        except ValidationError as e:
-            return json_response(e.messages, 400)
-        return json_response(RegionSchema().dump(region), 201)
-
-
 class RegionView(View):
     def get(self, request, region_id, *args, **kwargs):
         try:
             self.region = Region.objects.get(pk=region_id)
         except Region.DoesNotExist:
-            return json_response({"error": "No Region matches the given query"})
+            return json_response({"error": "No Region matches the given query"}, 404)
         return json_response(RegionSchema().dump(self.region))
 
     def post(self, request, *args, **kwargs):
@@ -33,7 +25,7 @@ class RegionView(View):
             self.region = Region.objects.filter(code=data["code"]).first()
             if self.region:
                 return json_response({
-                    "error": "Region aleady exists"
+                    "error": "Region already exists"
                 }, status=400)
         except KeyError:
             return json_response({
