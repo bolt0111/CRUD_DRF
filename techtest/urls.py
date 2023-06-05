@@ -24,7 +24,6 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("articles/", ArticlesListView.as_view(), name="articles-list"),
     path("articles/<int:article_id>/", ArticleView.as_view(), name="article"),
-    path("articles/create/", ArticleView.as_view(), name="create_article"),
     path("articles/<int:article_id>/delete/", ArticleView.as_view(), name="delete_article"),
     path("articles/<int:article_id>/delete_author/", ArticleView.as_view(), name="delete_author_from_article"),
     path("regions/", RegionsListView.as_view(), name="regions-list"),

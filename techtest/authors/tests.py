@@ -90,7 +90,7 @@ class AuthorViewTestCase(TestCase):
             },
             response.json(),
         )
-    
+
     def test_removes_author(self):
         self.url = reverse("author", kwargs={"author_id": self.author.id})
         response = self.client.delete(self.url)

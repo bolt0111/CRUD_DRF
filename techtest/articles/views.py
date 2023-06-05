@@ -14,57 +14,34 @@ class ArticlesListView(View):
 
     def post(self, request, *args, **kwargs):
         try:
-            article = ArticleSchema().load(json.loads(request.body))
+            self.article = ArticleSchema().load(json.loads(request.body))
+            self.article.save()
         except ValidationError as e:
             return json_response(e.messages, 400)
-        return json_response(ArticleSchema().dump(article), 201)
+        return json_response(ArticleSchema().dump(self.article), 200)
 
 
 class ArticleView(View):
-    def get(self, request, article_id, *args, **kwargs):
+    def dispatch(self, request, article_id, *args, **kwargs):
         try:
             self.article = Article.objects.get(pk=article_id)
         except Article.DoesNotExist:
-            return json_response({"error": "Article does not exist."}, status=404)
+            return json_response({"error": "No Article matches the given query"}, 404)
+        self.data = request.body and dict(json.loads(request.body), id=self.article.id)
+        return super(ArticleView, self).dispatch(request, *args, **kwargs)
+
+    def get(self, request, *args, **kwargs):
         return json_response(ArticleSchema().dump(self.article))
 
-    def post(self, request, *args, **kwargs):
+    def put(self, request, *args, **kwargs):
         try:
-            data = json.loads(request.body)
-            print("Data", data)
-            self.article = ArticleSchema().load(data)
+            self.article = ArticleSchema().load(self.data)
             self.article.save()
         except ValidationError as e:
             return json_response(e.messages, 400)
         return json_response(ArticleSchema().dump(self.article))
 
-    def put(self, request, article_id, *args, **kwargs):
-        print("Here is PUT")
-        try:
-            self.article = Article.objects.get(pk=article_id)
-            data = json.loads(request.body)
-            self.article.content = data["content"]
-            self.article.title = data["title"]
-            if data["author"]:
-                self.article.author.id = data["author"]["id"]
-                self.article.author.first_name = data["author"]["first_name"]
-                self.article.author.last_name = data["author"]["last_name"]
-            else:
-                self.article.author = None
-            if data["regions"]:
-                region_ids = [region["id"] for region in data["regions"]]
-                self.article.regions.set(region_ids)
-        except Article.DoesNotExist:
-            return json_response({"error": "No article matches the given query"}, 404)
-        except ValidationError as e:
-            return json_response(e.messages, 400)
-        return json_response(ArticleSchema().dump(self.article))
-
-    def delete(self, request, article_id, *args, **kwargs):
-        try:
-            self.article = Article.objects.get(pk=article_id)
-        except Article.DoesNotExist:
-            return json_response({"error": "Article does not exist."}, status=404)
+    def delete(self, request, *args, **kwargs):
         if request.path.endswith('/delete_author/'):
             if self.article.author:
                 self.article.author = None
