@@ -12,10 +12,22 @@ from django.core import management
 # Migrate
 management.call_command("migrate", no_input=True)
 # Seed
-Article.objects.create(title="Fake Article", content="Fake Content", author = Author.objects.create(first_name="Kevin", last_name="Makker"))
-Article.objects.create(title="Fake Article", content="Fake Content").regions.set(
+region_1 = Region.objects.create(code="AL", name="Albania")
+region_2 = Region.objects.create(code="UK", name="United Kingdom")
+region_3 = Region.objects.create(code="AU", name="Austria"),
+region_4 = Region.objects.create(code="US", name="United States of America")
+
+author_1 = Author.objects.create(first_name="Riley", last_name="Taylor")
+author_2 = Author.objects.create(first_name="Kevin", last_name="Makker")
+
+Article.objects.create(title="Fake Article", content="Fake Content", author=author_1).regions.set(
     [
-        Region.objects.create(code="Fr", name="France"),
-        Region.objects.create(code="Jp", name="Japan"),
+        region_1, region_2
+    ]
+)
+
+Article.objects.create(title="Fake Article", content="Fake Content", author=author_2).regions.set(
+    [
+        region_3, region_4
     ]
 )
